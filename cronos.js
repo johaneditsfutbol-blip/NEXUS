@@ -91,10 +91,7 @@ async function asaltoBovedaServicios() {
     // 5. EL OBJETIVO DIRECTO
     const frameCorrecto = page.frames().find(f => f.name() === 'item_501');
 
-    if (!frameCorrecto) {
-        console.log("❌ [ERROR CRÍTICO] El Iframe 'item_501' no apareció. El sistema está colapsado.");
-        return; 
-    }
+    if (!frameCorrecto) throw new Error("El Iframe 'item_501' no apareció.");
 
     // 6. FILTROS: Abrir el menú de columnas usando el Frame correcto
     console.log("⚙️ [CRONOS] Desplegando menú de Filtros (Bypass de clic activado)...");
@@ -261,10 +258,7 @@ async function asaltoBovedaServicios() {
         } catch (e) {}
     }
 
-    if (!frameExportacion) {
-        console.log("❌ [ERROR] No se encontró la ventana con el botón Aceptar.");
-        return;
-    }
+    if (!frameExportacion) throw new Error("No se encontró la ventana con el botón Aceptar.");
 
     console.log("🖱️ [CRONOS] Confirmando exportación (Clic en Aceptar)...");
     
@@ -327,10 +321,7 @@ async function asaltoBovedaServicios() {
         intentos++;
     }
 
-    if (!btnDescargarFrame) {
-        console.log("❌ [ERROR] La barra de progreso nunca terminó (Timeout de 3 minutos).");
-        return;
-    }
+    if (!btnDescargarFrame) throw new Error("La barra de progreso nunca terminó (Timeout de 3 minutos).");
 
     console.log("✅ [CRONOS] ¡Progreso al 100%! Preparando protocolo de intercepción antibloqueo...");
     
@@ -397,10 +388,7 @@ async function asaltoBovedaServicios() {
         }
     }
 
-    if (!archivoDescargado) {
-        console.log("❌ [ERROR CRÍTICO] La descarga falló por completo. Misión abortada.");
-        return;
-    }
+    if (!archivoDescargado) throw new Error("La descarga falló por completo.");
 
     // ==========================================================
     // 🧬 FASE 2: EL TRADUCTOR AUTOMÁTICO (Operación Censo Doble)
@@ -410,10 +398,7 @@ async function asaltoBovedaServicios() {
     const archivos = fs.readdirSync(downloadPath);
     const archivoXML = archivos.find(file => file.endsWith('.xml'));
     
-    if (!archivoXML) {
-        console.log("❌ [ERROR CRÍTICO] No se encontró el botín XML en la bóveda.");
-        return;
-    }
+    if (!archivoXML) throw new Error("No se encontró el botín XML en la bóveda.");
 
     const rutaCompleta = path.join(downloadPath, archivoXML);
 
