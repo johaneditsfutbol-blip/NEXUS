@@ -17,11 +17,11 @@ async function asaltoBovedaServicios() {
     misionEnProgreso = true;
     
     let asaltoExitoso = false;
-    let intentos = 0;
+    let intentosAsalto = 0; // <-- Bautizada con nuevo nombre
 
     // 🔄 BUCLE DE ASALTO INMEDIATO (Máximo 3 intentos por ciclo)
-    while (!asaltoExitoso && intentos < 3) {
-        intentos++;
+    while (!asaltoExitoso && intentosAsalto < 3) {
+        intentosAsalto++;
         let browser = null;
 
         try {
