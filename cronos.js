@@ -425,10 +425,9 @@ async function asaltoBovedaServicios() {
         }
     }
 
-    if (!estabilizado) {
-        console.log(`❌ [ERROR CRÍTICO] El archivo XML está vacío o corrupto (${tamanoAnterior} bytes). Icarosoft escupió basura.`);
-        fs.unlinkSync(rutaCompleta); // Destruimos el archivo corrupto
-        return;
+    const stats = fs.statSync(archivoXML);
+    if (stats.size < 1000) {
+        throw new Error(`El archivo XML está vacío o corrupto (${stats.size} bytes). Icarosoft escupió basura.`);
     }
 
     console.log(`✅ [CRONOS] Archivo estable (${(tamanoAnterior / 1024).toFixed(2)} KB). Masticando XML...`);
@@ -590,10 +589,17 @@ console.log(`
 =============================================
 `);
 
-cron.schedule('*/3 * * * *', () => {
-    const ahora = new Date().toLocaleTimeString('en-US', { hour12: false });
-    console.log(`\n[${ahora}] ⏰ Despertando a Cronos para el asalto triminutal...`);
-    asaltoBovedaServicios();
+cron.schedule('*/3 * * * *', async () => {
+    console.log(`\n[${new Date().toLocaleTimeString()}] ⏰ Despertando a Cronos...`);
+    try {
+        await asaltoBovedaServicios();
+    } catch (e) {
+        console.log("⚠️ [CRON] Error no manejado en el asalto:", e.message);
+    } finally {
+        // 🛡️ EL CANDADO MAESTRO: Pase lo que pase (éxito o error fatal),
+        // forzamos que la bandera se baje para que el próximo ciclo pueda entrar.
+        misionEnProgreso = false; 
+    }
 });
 
 // Disparamos el primer asalto de inmediato al prender el servidor
