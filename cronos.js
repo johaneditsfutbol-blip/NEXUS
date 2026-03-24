@@ -15,23 +15,26 @@ async function asaltoBovedaServicios() {
         return;
     }
     misionEnProgreso = true;
-    let browser = null;
+    
+    let asaltoExitoso = false;
+    let intentos = 0;
 
-    try {
-        console.log("🚀 [CRONOS] Iniciando secuencia de infiltración...");
+    // 🔄 BUCLE DE ASALTO INMEDIATO (Máximo 3 intentos por ciclo)
+    while (!asaltoExitoso && intentos < 3) {
+        intentos++;
+        let browser = null;
 
-        // 1. Levantamos el navegador en modo "Headless" para RAILWAY (invisible y ligero)
-        browser = await puppeteer.launch({ 
-            headless: true, // ⚠️ CRÍTICO PARA RAILWAY: Debe ser true en la nube
-            args: [
-                '--no-sandbox', 
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage', // Evita cuelgues de RAM
-                '--start-maximized'
-            ] 
-        });
+        try {
+            console.log(`\n🚀 [CRONOS] Iniciando infiltración (Intento ${intentos}/3)...`);
 
-        const page = await browser.newPage();
+            browser = await puppeteer.launch({ 
+                headless: true, 
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--start-maximized'] 
+            });
+
+            const page = await browser.newPage();
+            // ⏱️ Volvemos a tus 30 segundos exactos. Si Icaro no carga, abortamos rápido.
+            page.setDefaultNavigationTimeout(30000);
 
     // 2. BRECHA DE ENTRADA: Login
     console.log("🔐 [CRONOS] Abriendo bóveda principal...");
@@ -561,19 +564,35 @@ async function asaltoBovedaServicios() {
         console.log("♻️ [CRONOS] Archivo XML local destruido. Bóveda limpia.");
     }
 
-    console.log("🚪 [CRONOS] El fantasma se retira. Misión cumplida.");
-        
-    } catch (error) {
-        console.error("❌ [CRONOS-CRON] Falla catastrófica durante el asalto:", error);
-    } finally {
-        // 🛑 CRÍTICO: Aniquilamos el navegador siempre, pase lo que pase, para liberar RAM
-        if (browser) {
-            console.log("🧹 [CRONOS] Destruyendo rastro del navegador...");
-            await browser.close();
+    // (Esto va al final de la Fase 3, después del fs.unlinkSync)
+            console.log("🚪 [CRONOS] El fantasma se retira. Misión cumplida.");
+            
+            asaltoExitoso = true; // 🎯 Marcamos éxito para romper el bucle While
+
+        } catch (error) {
+            // 🛡️ MANEJO TÁCTICO DEL ERROR (Sin letras rojas feas)
+            if (error.message.includes('timeout') || (error.name && error.name === 'TimeoutError')) {
+                console.log("⚠️ [CRONOS] Icarosoft se quedó en blanco (Timeout de 30s).");
+            } else {
+                console.log(`⚠️ [CRONOS] Falla en la matrix: ${error.message}`);
+            }
+
+            if (intentos < 3) {
+                console.log("♻️ [CRONOS] Reagrupando tropas para reintento inmediato...");
+            } else {
+                console.log("❌ [ERROR] Los 3 intentos rápidos fallaron. Icarosoft está colapsado. Abortando misión.");
+            }
+            
+        } finally {
+            if (browser) {
+                console.log(`🧹 [CRONOS] Destruyendo navegador del Intento ${intentos}...`);
+                await browser.close().catch(() => {});
+            }
         }
-        misionEnProgreso = false;
-        console.log("⏳ [CRONOS] En espera del próximo ciclo...\n");
-    }
+    } // <-- FIN DEL WHILE DE REINTENTOS
+
+    misionEnProgreso = false;
+    console.log("⏳ [CRONOS] En espera del próximo ciclo triminutal...\n");
 }
 
 // ==========================================================
