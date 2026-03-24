@@ -598,3 +598,16 @@ cron.schedule('*/3 * * * *', () => {
 
 // Disparamos el primer asalto de inmediato al prender el servidor
 asaltoBovedaServicios();
+
+// ==========================================================
+// 🫀 EL MARCAPASOS (Servidor de Supervivencia)
+// ==========================================================
+const http = require('http');
+const PORT = process.env.PORT || 8080;
+
+http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('CRONOS OPERATIVO\n');
+}).listen(PORT, () => {
+    console.log(`📡 [LATIDO] Transmitiendo señal de vida en el puerto ${PORT}...`);
+});
