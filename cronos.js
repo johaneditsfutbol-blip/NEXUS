@@ -591,15 +591,7 @@ console.log(`
 
 cron.schedule('*/3 * * * *', async () => {
     console.log(`\n[${new Date().toLocaleTimeString()}] ⏰ Despertando a Cronos...`);
-    try {
-        await asaltoBovedaServicios();
-    } catch (e) {
-        console.log("⚠️ [CRON] Error no manejado en el asalto:", e.message);
-    } finally {
-        // 🛡️ EL CANDADO MAESTRO: Pase lo que pase (éxito o error fatal),
-        // forzamos que la bandera se baje para que el próximo ciclo pueda entrar.
-        misionEnProgreso = false; 
-    }
+    await asaltoBovedaServicios();
 });
 
 // Disparamos el primer asalto de inmediato al prender el servidor
