@@ -1,13 +1,14 @@
 {
   "name": "cronos",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Escuadrón de Infiltración y Sincronización Icarosoft",
+  "main": "cronos.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node cronos.js",
+    "facturas": "node cronos_facturas.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["bot", "icarosoft", "cronos", "automation"],
+  "author": "Comandante",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -15,6 +16,7 @@
     "adm-zip": "^0.5.16",
     "dotenv": "^17.3.1",
     "fast-xml-parser": "^5.5.9",
+    "node-cron": "^3.0.3",
     "puppeteer": "^24.40.0"
   }
 }
