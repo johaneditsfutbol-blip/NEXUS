@@ -25,7 +25,7 @@ async function asaltoBovedaServicios() {
         let browser = null;
 
         try {
-            console.log(`\n🚀 [CRONOS] Iniciando infiltración (Intento ${intentos}/3)...`);
+            console.log(`\n🚀 [CRONOS] Iniciando infiltración (Intento ${intentosAsalto}/3)...`);
 
             browser = await puppeteer.launch({ 
                 headless: true, 
@@ -577,18 +577,18 @@ async function asaltoBovedaServicios() {
                 console.log(`⚠️ [CRONOS] Falla en la matrix: ${error.message}`);
             }
 
-            if (intentos < 3) {
-                console.log("♻️ [CRONOS] Reagrupando tropas para reintento inmediato...");
-            } else {
-                console.log("❌ [ERROR] Los 3 intentos rápidos fallaron. Icarosoft está colapsado. Abortando misión.");
-            }
-            
-        } finally {
-            if (browser) {
-                console.log(`🧹 [CRONOS] Destruyendo navegador del Intento ${intentos}...`);
-                await browser.close().catch(() => {});
-            }
+            if (intentosAsalto < 3) {
+            console.log("♻️ [CRONOS] Reagrupando tropas para reintento inmediato...");
+        } else {
+            console.log("❌ [ERROR] Los 3 intentos rápidos fallaron. Icarosoft colapsado. Abortando misión.");
         }
+        
+    } finally {
+        if (browser) {
+            console.log(`🧹 [CRONOS] Destruyendo navegador del Intento ${intentosAsalto}...`);
+            await browser.close().catch(() => {});
+        }
+    }
     } // <-- FIN DEL WHILE DE REINTENTOS
 
     misionEnProgreso = false;
