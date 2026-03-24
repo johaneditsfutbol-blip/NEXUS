@@ -14,30 +14,40 @@ async function asaltoBovedaFacturas() {
         return;
     }
     misionEnProgreso = true;
-    let browser = null;
+    
+    let asaltoExitoso = false;
+    let intentos = 0;
 
-    try {
-        console.log("🚀 [CRONOS] Iniciando secuencia de infiltración financiera...");
+    // 🔄 BUCLE DE ASALTO INMEDIATO (Máximo 3 intentos por ciclo)
+    while (!asaltoExitoso && intentos < 3) {
+        intentos++;
+        let browser = null;
 
-        // 1. Navegador en modo "Headless" para RAILWAY
-        browser = await puppeteer.launch({ 
-            headless: true, 
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--start-maximized'] 
-        });
+        try {
+            console.log(`\n🚀 [CRONOS-FACT] Iniciando infiltración financiera (Intento ${intentos}/3)...`);
 
-        const page = await browser.newPage();
+            // 1. Navegador en modo "Headless" para RAILWAY
+            browser = await puppeteer.launch({ 
+                headless: true, 
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--start-maximized'] 
+            });
 
-        // 2. BRECHA DE ENTRADA: Login
-        console.log("🔐 [CRONOS] Abriendo bóveda principal...");
-        await page.goto('https://administrativo.icarosoft.com/Login/', { waitUntil: 'networkidle2' });
-        await page.waitForSelector('#id_sc_field_login');
-        await page.type('#id_sc_field_login', 'JOHANC', { delay: 50 });
-        await page.type('#id_sc_field_pswd', '@VNjohanc16', { delay: 50 });
-        
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle2' }),
-            page.keyboard.press('Enter')
-        ]);
+            const page = await browser.newPage();
+            // ⏱️ ESCUDO ANTI-CUELGUE: 30 segundos exactos y aborta
+            page.setDefaultNavigationTimeout(30000);
+
+            // 2. BRECHA DE ENTRADA: Login
+            console.log("🔐 [CRONOS] Abriendo bóveda principal...");
+            // ⚡ TÁCTICA DE VELOCIDAD: 'domcontentloaded'
+            await page.goto('https://administrativo.icarosoft.com/Login/', { waitUntil: 'domcontentloaded' });
+            await page.waitForSelector('#id_sc_field_login');
+            await page.type('#id_sc_field_login', 'JOHANC', { delay: 50 });
+            await page.type('#id_sc_field_pswd', '@VNjohanc16', { delay: 50 });
+            
+            await Promise.all([
+                page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+                page.keyboard.press('Enter')
+            ]);
 
         console.log("✅ [CRONOS] Acceso concedido (Pausa 5s)...");
         await new Promise(r => setTimeout(r, 5000)); 
@@ -278,17 +288,32 @@ async function asaltoBovedaFacturas() {
         fs.unlinkSync(rutaCompleta); 
 
         console.log("🚪 [CRONOS] Misión cumplida.");
+        asaltoExitoso = true; // 🎯 Éxito: Rompe el bucle de reintentos
 
     } catch (error) {
-        console.error("❌ [CRONOS-FACT] Falla durante el asalto:", error.message);
+        // 🛡️ MANEJO TÁCTICO DEL ERROR (Reintento Inmediato)
+        if (error.message.includes('timeout') || (error.name && error.name === 'TimeoutError')) {
+            console.log("⚠️ [CRONOS] Icarosoft se quedó en blanco (Timeout de 30s).");
+        } else {
+            console.log(`⚠️ [CRONOS] Falla en la matrix: ${error.message}`);
+        }
+
+        if (intentos < 3) {
+            console.log("♻️ [CRONOS] Reagrupando tropas para reintento inmediato...");
+        } else {
+            console.log("❌ [ERROR] Los 3 intentos rápidos fallaron. Icarosoft colapsado. Abortando misión.");
+        }
+        
     } finally {
         if (browser) {
-            console.log("🧹 [CRONOS] Destruyendo rastro del navegador...");
-            await browser.close();
+            console.log(`🧹 [CRONOS] Destruyendo navegador del Intento ${intentos}...`);
+            await browser.close().catch(() => {});
         }
-        misionEnProgreso = false;
-        console.log("⏳ [CRONOS] En espera del próximo ciclo...\n");
     }
+  } // <-- FIN DEL BUCLE WHILE DE REINTENTOS
+
+  misionEnProgreso = false;
+  console.log("⏳ [CRONOS] En espera del próximo ciclo triminutal...\n");
 }
 
 // ==========================================================
