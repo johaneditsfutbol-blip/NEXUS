@@ -24,7 +24,7 @@ async function asaltoBovedaFacturas() {
         let browser = null;
 
         try {
-            console.log(`\n🚀 [CRONOS-FACT] Iniciando infiltración financiera (Intento ${intentos}/3)...`);
+            console.log(`\n🚀 [CRONOS-FACT] Iniciando infiltración (Intento ${intentosAsalto}/3)...`);
 
             // 1. Navegador en modo "Headless" para RAILWAY
             browser = await puppeteer.launch({ 
