@@ -16,11 +16,11 @@ async function asaltoBovedaFacturas() {
     misionEnProgreso = true;
     
     let asaltoExitoso = false;
-    let intentos = 0;
+    let intentosAsalto = 0; // <-- Bautizada con nuevo nombre
 
     // 🔄 BUCLE DE ASALTO INMEDIATO (Máximo 3 intentos por ciclo)
-    while (!asaltoExitoso && intentos < 3) {
-        intentos++;
+    while (!asaltoExitoso && intentosAsalto < 3) {
+        intentosAsalto++;
         let browser = null;
 
         try {
@@ -298,7 +298,7 @@ async function asaltoBovedaFacturas() {
             console.log(`⚠️ [CRONOS] Falla en la matrix: ${error.message}`);
         }
 
-        if (intentos < 3) {
+        if (intentosAsalto < 3) {
             console.log("♻️ [CRONOS] Reagrupando tropas para reintento inmediato...");
         } else {
             console.log("❌ [ERROR] Los 3 intentos rápidos fallaron. Icarosoft colapsado. Abortando misión.");
@@ -306,7 +306,7 @@ async function asaltoBovedaFacturas() {
         
     } finally {
         if (browser) {
-            console.log(`🧹 [CRONOS] Destruyendo navegador del Intento ${intentos}...`);
+            console.log(`🧹 [CRONOS] Destruyendo navegador del Intento ${intentosAsalto}...`);
             await browser.close().catch(() => {});
         }
     }
