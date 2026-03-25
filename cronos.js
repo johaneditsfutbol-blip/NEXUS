@@ -42,8 +42,8 @@ async function asaltoBovedaServicios() {
 
     // Escribimos credenciales simulando un humano
     await page.waitForSelector('#id_sc_field_login');
-    await page.type('#id_sc_field_login', 'JOHANC', { delay: 50 });
-    await page.type('#id_sc_field_pswd', '@VNjohanc16', { delay: 50 });
+    await page.type('#id_sc_field_login', 'VIVIAN-Sede Prncipal', { delay: 50 });
+    await page.type('#id_sc_field_pswd', '@vivian26', { delay: 50 });
     
     // Disparamos el login y ESPERAMOS que la red se calme (Evita Race Condition)
     await Promise.all([
