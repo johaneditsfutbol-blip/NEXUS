@@ -403,32 +403,23 @@ async function asaltoBovedaServicios() {
     const rutaCompleta = path.join(downloadPath, archivoXML);
 
     // ⚖️ ESTABILIZADOR: Obligamos a Cronos a esperar que el archivo se llene de datos
-    console.log("⚖️ [CRONOS] Verificando integridad del XML (Esperando escritura en disco)...");
-    let tamanoAnterior = -1;
-    let estabilizado = false;
-    let intentosEstabilizacion = 0;
+    console.log("⚖️ [CRONOS] Verificando integridad del XML...");
+        let tamanoAnterior = -1;
+        let estabilizado = false;
+        let intentosEstab = 0;
 
-    while (!estabilizado && intentosEstabilizacion < 20) {
-        try {
-            const stats = fs.statSync(rutaCompleta);
-            // El XML de servicios es pesado. Si pesa más de 500 bytes y no ha crecido, está listo.
-            if (stats.size > 500 && stats.size === tamanoAnterior) {
-                estabilizado = true;
-            } else {
-                tamanoAnterior = stats.size;
-                await new Promise(r => setTimeout(r, 1000));
-                intentosEstabilizacion++;
-            }
-        } catch (e) {
-            await new Promise(r => setTimeout(r, 1000));
-            intentosEstabilizacion++;
+        while (!estabilizado && intentosEstab < 20) {
+            try {
+                const stats = fs.statSync(rutaCompleta);
+                if (stats.size > 500 && stats.size === tamanoAnterior) estabilizado = true;
+                else { tamanoAnterior = stats.size; await new Promise(r => setTimeout(r, 1000)); intentosEstab++; }
+            } catch (e) { await new Promise(r => setTimeout(r, 1000)); intentosEstab++; }
         }
-    }
 
-    const stats = fs.statSync(archivoXML);
-    if (stats.size < 1000) {
-        throw new Error(`El archivo XML está vacío o corrupto (${stats.size} bytes). Icarosoft escupió basura.`);
-    }
+        if (!estabilizado) {
+            fs.unlinkSync(rutaCompleta);
+            throw new Error("Archivo XML corrupto o vacío.");
+        }
 
     console.log(`✅ [CRONOS] Archivo estable (${(tamanoAnterior / 1024).toFixed(2)} KB). Masticando XML...`);
     const xmlData = fs.readFileSync(rutaCompleta, 'utf8');
