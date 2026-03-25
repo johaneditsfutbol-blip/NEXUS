@@ -41,8 +41,8 @@ async function asaltoBovedaFacturas() {
             // ⚡ TÁCTICA DE VELOCIDAD: 'domcontentloaded'
             await page.goto('https://administrativo.icarosoft.com/Login/', { waitUntil: 'domcontentloaded' });
             await page.waitForSelector('#id_sc_field_login');
-            await page.type('#id_sc_field_login', 'JOHANC', { delay: 50 });
-            await page.type('#id_sc_field_pswd', '@VNjohanc16', { delay: 50 });
+            await page.type('#id_sc_field_login', 'Agente 1 VIVIAN - Sede Principal', { delay: 50 });
+            await page.type('#id_sc_field_pswd', '@VN2026', { delay: 50 });
             
             await Promise.all([
                 page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
