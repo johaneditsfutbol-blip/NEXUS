@@ -42,8 +42,8 @@ async function asaltoBovedaServicios() {
 
     // Escribimos credenciales simulando un humano
     await page.waitForSelector('#id_sc_field_login');
-    await page.type('#id_sc_field_login', 'VIVIAN-Sede Prncipal', { delay: 50 });
-    await page.type('#id_sc_field_pswd', '@vivian26', { delay: 50 });
+    await page.type('#id_sc_field_login', 'JOHANC', { delay: 50 });
+    await page.type('#id_sc_field_pswd', '@VNjohanc16', { delay: 50 });
     
     // Disparamos el login y ESPERAMOS que la red se calme (Evita Race Condition)
     await Promise.all([
@@ -522,17 +522,20 @@ async function asaltoBovedaServicios() {
     }
 
     // 💥 DISPARO 2: LA TABLA DE SERVICIOS
-    console.log("🛰️ [CRONOS] Lanzando Misil 2: Actualizando estado de los servicios...");
-    const { error: errorServicios } = await supabase
-        .from('servicios') 
-        .upsert(serviciosLimpios, { 
-            onConflict: 'id_servicio_cliente' 
-        });
+    console.log("🛰️ [CRONOS] Lanzando Misil 2: Limpiando fantasmas y actualizando servicios...");
+    
+    // 1. PURGA TOTAL: Borramos la base de datos vieja (El '.neq' asegura que borre todo)
+    await supabase.from('servicios').delete().neq('documento', '0');
 
-    if (errorServicios) {
-        console.error("❌ [ERROR CRÍTICO] La inyección de servicios falló:", errorServicios);
-    } else {
-        console.log("💥 [CRONOS] ¡Impacto 2 Confirmado! Servicios actualizados con éxito absoluto.");
+    // 2. INYECCIÓN FRESCA: Metemos la data 100% real y actualizada
+    const { error: errorServicios } = await supabase
+        .from('servicios') 
+        .insert(serviciosLimpios);
+
+    if (errorServicios) {
+        console.error("❌ [ERROR CRÍTICO] La inyección de servicios falló:", errorServicios);
+    } else {
+        console.log("💥 [CRONOS] ¡Impacto 2 Confirmado! Bóveda limpia y servicios actualizados sin fantasmas.");
         
         // Protocolo de limpieza final
         fs.unlinkSync(rutaCompleta); 
