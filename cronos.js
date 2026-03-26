@@ -592,14 +592,36 @@ cron.schedule('*/3 * * * *', async () => {
 asaltoBovedaServicios();
 
 // ==========================================================
-// 🫀 EL MARCAPASOS (Servidor de Supervivencia)
+// 🫀 EL MARCAPASOS TÁCTICO (Con Protocolo Zombie)
 // ==========================================================
 const http = require('http');
 const PORT = process.env.PORT || 8080;
 
+// Llevamos un registro de cuándo fue la última vez que el bot estuvo libre
+let ultimoVistoLibre = Date.now();
+
 http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('CRONOS OPERATIVO\n');
+    if (!misionEnProgreso) {
+        // Si no está en misión, actualizamos el reloj de vida y reportamos OK
+        ultimoVistoLibre = Date.now();
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('CRONOS OPERATIVO\n');
+    } else {
+        // Si está en misión, calculamos cuántos minutos lleva trabajando
+        const minutosPegado = (Date.now() - ultimoVistoLibre) / 60000;
+        
+        if (minutosPegado > 10) {
+            // ☢️ LLEVA MÁS DE 10 MINUTOS. SE VOLVIÓ ZOMBIE.
+            // Empezamos a gritar Error 500 para que el Distribuidor nos dispare
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('ZOMBIE DETECTADO - SOLICITANDO BOMBARDEO ORBITAL (REDEPLOY)\n');
+            console.log("💀 [CRONOS] Estado Zombie Detectado. Emitiendo señal 500 al Comandante...");
+        } else {
+            // Está trabajando normal, reportamos OK
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(`CRONOS EN MISION (Tiempo: ${minutosPegado.toFixed(1)} min)\n`);
+        }
+    }
 }).listen(PORT, () => {
     console.log(`📡 [LATIDO] Transmitiendo señal de vida en el puerto ${PORT}...`);
 });
