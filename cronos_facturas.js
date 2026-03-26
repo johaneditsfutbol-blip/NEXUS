@@ -74,13 +74,19 @@ async function asaltoBovedaFacturas() {
         const frameCorrecto = page.frames().find(f => f.name() === 'item_304');
         if (!frameCorrecto) throw new Error("El Iframe 'item_304' no apareció.");
 
-        // 6. ATAQUE DIRECTO: Calculadora de Tiempo Dinámica (Últimos 45 días)
+        // 6. ATAQUE DIRECTO: Radar Dinámico por Quincenas
         console.log("⏱️ [CRONOS] Calculando coordenadas temporales dinámicas...");
         await frameCorrecto.waitForSelector('#SC_fecha_emision_dia', { visible: true, timeout: 20000 });
         
         const fechaFin = new Date();
         const fechaInicio = new Date();
-        fechaInicio.setDate(fechaFin.getDate() - 10); // Radar ajustado a los últimos 10 días
+        
+        // 🎯 Lógica Inteligente de Ciclo de Facturación
+        if (fechaFin.getDate() >= 15) {
+            fechaInicio.setDate(15); // Si es la segunda mitad del mes, miramos desde el 15
+        } else {
+            fechaInicio.setDate(1);  // Si es la primera mitad del mes, miramos desde el día 1
+        }
 
         const pad = (n) => n.toString().padStart(2, '0');
         const filtro = {
