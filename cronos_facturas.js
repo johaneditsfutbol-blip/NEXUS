@@ -52,7 +52,7 @@ async function asaltoBovedaFacturas() {
         console.log("✅ [CRONOS] Acceso concedido (Pausa 5s)...");
         await new Promise(r => setTimeout(r, 5000)); 
 
-        // 3. NAVEGACIÓN: Menú Administrativoo
+        // 3. NAVEGACIÓN: Menú Administrativo
         console.log("🖱️ [CRONOS] Moviendo la vista hacia 'Administrativo'...");
         await page.waitForFunction(() => Array.from(document.querySelectorAll('span.label')).some(s => s.textContent.trim() === 'Administrativo'));
         await page.evaluate(() => {
@@ -189,7 +189,7 @@ async function asaltoBovedaFacturas() {
 
         console.log("✅ [CRONOS] ¡Progreso al 100%! Ejecutando extracción...");
         
-        // 7. LA EXTRACCIÓN CON RADAR DE 60 s
+        // 7. LA EXTRACCIÓN CON RADAR DE 60s
         let archivoDescargado = false;
         let intentosDescarga = 0;
 
@@ -334,14 +334,36 @@ cron.schedule('*/3 * * * *', () => {
 asaltoBovedaFacturas();
 
 // ==========================================================
-// 🫀 EL MARCAPASOS (Servidor de Supervivencia)
+// 🫀 EL MARCAPASOS TÁCTICO (Con Protocolo Zombie)
 // ==========================================================
 const http = require('http');
 const PORT = process.env.PORT || 8080;
 
+// Llevamos un registro de cuándo fue la última vez que el bot estuvo libre
+let ultimoVistoLibre = Date.now();
+
 http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('CRONOS OPERATIVO\n');
+    if (!misionEnProgreso) {
+        // Si no está en misión, actualizamos el reloj de vida y reportamos OK
+        ultimoVistoLibre = Date.now();
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('CRONOS OPERATIVO\n');
+    } else {
+        // Si está en misión, calculamos cuántos minutos lleva trabajando
+        const minutosPegado = (Date.now() - ultimoVistoLibre) / 60000;
+        
+        if (minutosPegado > 10) {
+            // ☢️ LLEVA MÁS DE 10 MINUTOS. SE VOLVIÓ ZOMBIE.
+            // Empezamos a gritar Error 500 para que el Distribuidor nos dispare
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('ZOMBIE DETECTADO - SOLICITANDO BOMBARDEO ORBITAL (REDEPLOY)\n');
+            console.log("💀 [CRONOS] Estado Zombie Detectado. Emitiendo señal 500 al Comandante...");
+        } else {
+            // Está trabajando normal, reportamos OK
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(`CRONOS EN MISION (Tiempo: ${minutosPegado.toFixed(1)} min)\n`);
+        }
+    }
 }).listen(PORT, () => {
     console.log(`📡 [LATIDO] Transmitiendo señal de vida en el puerto ${PORT}...`);
 });
