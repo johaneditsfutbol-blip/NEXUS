@@ -52,7 +52,7 @@ async function asaltoBovedaFacturas() {
         console.log("✅ [CRONOS] Acceso concedido (Pausa 5s)...");
         await new Promise(r => setTimeout(r, 5000)); 
 
-        // 3. NAVEGACIÓN: Menú Administrativo
+        // 3. NAVEGACIÓN: Menú Administrativoo
         console.log("🖱️ [CRONOS] Moviendo la vista hacia 'Administrativo'...");
         await page.waitForFunction(() => Array.from(document.querySelectorAll('span.label')).some(s => s.textContent.trim() === 'Administrativo'));
         await page.evaluate(() => {
