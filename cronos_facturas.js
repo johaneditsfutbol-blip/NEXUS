@@ -189,7 +189,7 @@ async function asaltoBovedaFacturas() {
 
         console.log("✅ [CRONOS] ¡Progreso al 100%! Ejecutando extracción...");
         
-        // 7. LA EXTRACCIÓN CON RADAR DE 60s
+        // 7. LA EXTRACCIÓN CON RADAR DE 60 s
         let archivoDescargado = false;
         let intentosDescarga = 0;
 
