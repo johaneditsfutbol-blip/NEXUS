@@ -7,6 +7,7 @@ const { createClient } = require('@supabase/supabase-js');
 const cron = require('node-cron'); // <-- EL RELOJ MAESTRO
 
 let misionEnProgreso = false;
+let ultimaVictoria = Date.now(); // ⏱️ El reloj del Interruptor de Hombre Muerto
 
 async function asaltoBovedaFacturas() {
     if (misionEnProgreso) {
@@ -26,10 +27,18 @@ async function asaltoBovedaFacturas() {
         try {
             console.log(`\n🚀 [CRONOS-FACT] Iniciando infiltración (Intento ${intentosAsalto}/3)...`);
 
-            // 1. Navegador en modo "Headless" para RAILWAY
+            // 1. Navegador en "Modo Supervivencia" para RAILWAY (Bajo consumo de RAM/CPU)
             browser = await puppeteer.launch({ 
                 headless: true, 
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--start-maximized'] 
+                args: [
+                    '--no-sandbox', 
+                    '--disable-setuid-sandbox', 
+                    '--disable-dev-shm-usage', // Evita que use la memoria compartida del OS
+                    '--disable-gpu',           // Apaga el motor gráfico (no lo necesitamos en headless)
+                    '--no-zygote',             // Reduce drásticamente la creación de subprocesos (evita el error 11)
+                    '--disable-features=IsolateOrigins,site-per-process', // Ahorra muchísima memoria RAM
+                    '--start-maximized'
+                ] 
             });
 
             const page = await browser.newPage();
@@ -295,6 +304,7 @@ async function asaltoBovedaFacturas() {
 
         console.log("🚪 [CRONOS] Misión cumplida.");
         asaltoExitoso = true; // 🎯 Éxito: Rompe el bucle de reintentos
+        ultimaVictoria = Date.now(); // ⏱️ MISIÓN EXITOSA: Reseteamos el reloj de la bomba a cero
 
     } catch (error) {
         // 🛡️ MANEJO TÁCTICO DEL ERROR (Reintento Inmediato)
@@ -334,35 +344,25 @@ cron.schedule('*/3 * * * *', () => {
 asaltoBovedaFacturas();
 
 // ==========================================================
-// 🫀 EL MARCAPASOS TÁCTICO (Con Protocolo Zombie)
+// 🫀 EL MARCAPASOS TÁCTICO (Interruptor de Hombre Muerto)
 // ==========================================================
 const http = require('http');
 const PORT = process.env.PORT || 8080;
 
-// Llevamos un registro de cuándo fue la última vez que el bot estuvo libre
-let ultimoVistoLibre = Date.now();
-
 http.createServer((req, res) => {
-    if (!misionEnProgreso) {
-        // Si no está en misión, actualizamos el reloj de vida y reportamos OK
-        ultimoVistoLibre = Date.now();
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('CRONOS OPERATIVO\n');
+    // Calculamos cuántos minutos han pasado desde la última vez que Supabase recibió datos exitosamente
+    const minutosSinExito = (Date.now() - ultimaVictoria) / 60000;
+
+    // Si pasan más de 15 minutos sin éxito (aprox. 5 ciclos de cron fallidos al hilo)
+    if (minutosSinExito > 15) {
+        // ☢️ ESTÁ CRASHEANDO EN BUCLE O ICAROSOFT MURIÓ. 
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('HOMBRE MUERTO DETECTADO - SOLICITANDO BOMBARDEO ORBITAL (REDEPLOY)\n');
+        console.log(`💀 [CRONOS] ¡ALERTA FATAL! Llevamos ${minutosSinExito.toFixed(1)} minutos sin poder completar una extracción. Disparando señal 500...`);
     } else {
-        // Si está en misión, calculamos cuántos minutos lleva trabajando
-        const minutosPegado = (Date.now() - ultimoVistoLibre) / 60000;
-        
-        if (minutosPegado > 10) {
-            // ☢️ LLEVA MÁS DE 10 MINUTOS. SE VOLVIÓ ZOMBIE.
-            // Empezamos a gritar Error 500 para que el Distribuidor nos dispare
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.end('ZOMBIE DETECTADO - SOLICITANDO BOMBARDEO ORBITAL (REDEPLOY)\n');
-            console.log("💀 [CRONOS] Estado Zombie Detectado. Emitiendo señal 500 al Comandante...");
-        } else {
-            // Está trabajando normal, reportamos OK
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end(`CRONOS EN MISION (Tiempo: ${minutosPegado.toFixed(1)} min)\n`);
-        }
+        // Todo en orden o dentro del margen de error aceptable
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(`CRONOS OPERATIVO (Ultima victoria hace: ${minutosSinExito.toFixed(1)} min)\n`);
     }
 }).listen(PORT, () => {
     console.log(`📡 [LATIDO] Transmitiendo señal de vida en el puerto ${PORT}...`);
