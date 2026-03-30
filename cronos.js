@@ -444,26 +444,27 @@ async function asaltoBovedaServicios() {
     const mapaClientes = new Map(); // El radar para evitar registrar al mismo cliente dos veces
 
     arrayCrudo.forEach(cliente => {
-        // 1. Limpieza extrema del Documento (Nuestra Llave Maestra)
-        const docRaw = cliente.Documento ? cliente.Documento.toString() : '';
-        const documentoLimpio = docRaw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        // 1. Limpieza extrema del Documento (Nuestra Llave Maestra)
+        const docRaw = cliente.Documento ? cliente.Documento.toString() : '';
+        const documentoLimpio = docRaw.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-        if (!documentoLimpio) return; // Si Icaro manda una fila fantasma sin cédula, la ignoramos
+        if (!documentoLimpio) return; 
 
-        // 2. EXTRAER CLIENTE: Lo guardamos en el mapa. Si ya existe, se sobrescribe con la info más fresca.
-        if (!mapaClientes.has(documentoLimpio)) {
-            mapaClientes.set(documentoLimpio, {
-                documento_cliente: documentoLimpio,
-                nombre_cliente: cliente.Datos_Cliente && cliente.Datos_Cliente.Nombre_Cliente ? cliente.Datos_Cliente.Nombre_Cliente.trim() : 'DESCONOCIDO',
-                telefono_movil: cliente.Datos_Cliente ? cliente.Datos_Cliente.Telefono_Movil : null,
-                telefono_fijo: cliente.Datos_Cliente ? cliente.Datos_Cliente.Telefono_Fijo : null,
-                e_mail: cliente.Datos_Cliente ? cliente.Datos_Cliente.E_Mail : null
-            });
-        }
-
-        // NORMALIZACIÓN: Detectamos la sucursal por la palabra clave
+        // NORMALIZACIÓN: Subimos este cálculo aquí arriba para poder usarlo en el perfil del cliente
         const sucursalCruda = cliente.Sucursal ? cliente.Sucursal.toString().toUpperCase() : 'VIDANET';
         const nombreSucursal = sucursalCruda.includes('LIBERTADOR') ? 'TOCUYITO' : 'PRINCIPAL';
+
+        // 2. EXTRAER CLIENTE: Lo guardamos en el mapa con su etiqueta
+        if (!mapaClientes.has(documentoLimpio)) {
+            mapaClientes.set(documentoLimpio, {
+                documento_cliente: documentoLimpio,
+                nombre_cliente: cliente.Datos_Cliente && cliente.Datos_Cliente.Nombre_Cliente ? cliente.Datos_Cliente.Nombre_Cliente.trim() : 'DESCONOCIDO',
+                telefono_movil: cliente.Datos_Cliente ? cliente.Datos_Cliente.Telefono_Movil : null,
+                telefono_fijo: cliente.Datos_Cliente ? cliente.Datos_Cliente.Telefono_Fijo : null,
+                e_mail: cliente.Datos_Cliente ? cliente.Datos_Cliente.E_Mail : null,
+                sucursal: nombreSucursal // 🎯 INYECCIÓN DIRECTA: Rellenará los vacíos automáticamente
+            });
+        }
 
         // 3. EXTRAER SERVICIO:
         serviciosLimpios.push({
