@@ -461,9 +461,13 @@ async function asaltoBovedaServicios() {
             });
         }
 
-        // 3. EXTRAER SERVICIO: Mantenemos la estructura vieja para no romper tu App actual (Operación Silenciosa)
-        serviciosLimpios.push({
-            id_servicio_cliente: cliente.Id_Servicio_Cliente,
+        // NORMALIZACIÓN: Detectamos la sucursal por la palabra clave
+        const sucursalCruda = cliente.Sucursal ? cliente.Sucursal.toString().toUpperCase() : 'VIDANET';
+        const nombreSucursal = sucursalCruda.includes('LIBERTADOR') ? 'TOCUYITO' : 'PRINCIPAL';
+
+        // 3. EXTRAER SERVICIO:
+        serviciosLimpios.push({
+            id_servicio_cliente: cliente.Id_Servicio_Cliente + '-' + nombreSucursal,
             documento: documentoLimpio, // <-- Inyectamos la cédula ya limpia
             
             // Mantenemos estos datos aquí temporalmente por si tu frontend los está leyendo directamente
@@ -484,9 +488,9 @@ async function asaltoBovedaServicios() {
             puerto_pon: cliente.Puerto_PON_, 
             nap: cliente.NAP_,
             puerto: cliente.Puerto,
-            servicio_vip: cliente.Servicio_Vip,
-            sucursal: cliente.Sucursal,
-            coordenadas: cliente.Coordenadas || null, 
+            servicio_vip: cliente.Servicio_Vip,
+            sucursal: nombreSucursal, // Guardamos la etiqueta normalizada limpia
+            coordenadas: cliente.Coordenadas || null,
             direccion_servicio: cliente.Direccion_Servicio,
             fecha_instalacion: cliente.Fecha_Instalacion,
             instalador: cliente.Instalador
@@ -534,8 +538,9 @@ async function asaltoBovedaServicios() {
     // 💥 DISPARO 2: LA TABLA DE SERVICIOS
     console.log("🛰️ [CRONOS] Lanzando Misil 2: Limpiando fantasmas y actualizando servicios...");
     
-    // 1. PURGA TOTAL: Borramos la base de datos vieja (El '.neq' asegura que borre todo)
-    await supabase.from('servicios').delete().neq('documento', '0');
+    // 1. PURGA DINÁMICA: Solo borra de Supabase las sucursales que este bot acaba de descargar
+    const sucursalesExtraidas = [...new Set(serviciosLimpios.map(s => s.sucursal))];
+    await supabase.from('servicios').delete().in('sucursal', sucursalesExtraidas);
 
     // 2. INYECCIÓN FRESCA: Metemos la data 100% real y actualizada
     const { error: errorServicios } = await supabase
@@ -608,20 +613,23 @@ const http = require('http');
 const PORT = process.env.PORT || 8080;
 
 http.createServer((req, res) => {
-    // Calculamos cuántos minutos han pasado desde la última vez que Supabase recibió datos exitosamente
-    const minutosSinExito = (Date.now() - ultimaVictoria) / 60000;
-
-    // Si pasan más de 15 minutos sin éxito (aprox. 5 ciclos de cron fallidos al hilo)
-    if (minutosSinExito > 15) {
-        // ☢️ ESTÁ CRASHEANDO EN BUCLE O ICAROSOFT MURIÓ. 
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('HOMBRE MUERTO DETECTADO - SOLICITANDO BOMBARDEO ORBITAL (REDEPLOY)\n');
-        console.log(`💀 [CRONOS] ¡ALERTA FATAL! Llevamos ${minutosSinExito.toFixed(1)} minutos sin poder completar una extracción. Disparando señal 500...`);
-    } else {
-        // Todo en orden o dentro del margen de error aceptable
+    // ☠️ EL GATILLO DEL DISTRIBUIDOR
+    if (req.url === '/kill') {
+        console.log("💀 [CRONOS] Orden recibida del Distribuidor. Apagando sistemas. Railway me resucitará...");
         res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end(`CRONOS OPERATIVO (Ultima victoria hace: ${minutosSinExito.toFixed(1)} min)\n`);
+        res.end('CRONOS DESTRUIDO\n');
+        setTimeout(() => { process.exit(1); }, 1000);
+        return;
+    }
+
+    const minutosSinExito = (Date.now() - ultimaVictoria) / 60000;
+    if (minutosSinExito > 15) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('HOMBRE MUERTO DETECTADO\n');
+    } else {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(`CRONOS OPERATIVO (Ultima victoria: ${minutosSinExito.toFixed(1)} min)\n`);
     }
 }).listen(PORT, () => {
-    console.log(`📡 [LATIDO] Transmitiendo señal de vida en el puerto ${PORT}...`);
+    console.log(`📡 [LATIDO] Transmitiendo señal en el puerto ${PORT}...`);
 });
