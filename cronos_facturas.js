@@ -5,6 +5,7 @@ const fs = require('fs');
 const { XMLParser } = require('fast-xml-parser');
 const { createClient } = require('@supabase/supabase-js');
 const cron = require('node-cron'); // <-- EL RELOJ MAESTRO
+const SUCURSAL_ACTUAL = 'PRINCIPAL'; // CAMBIAR A 'TOCUYITO' CUANDO DUPLIQUES EL BOT
 
 let misionEnProgreso = false;
 let ultimaVictoria = Date.now(); // ⏱️ El reloj del Interruptor de Hombre Muerto
@@ -267,8 +268,8 @@ async function asaltoBovedaFacturas() {
         if (!Array.isArray(arrayCrudo)) arrayCrudo = [arrayCrudo];
         
         const facturasLimpias = arrayCrudo.map(f => ({
-            id_ventas: f.Id_Ventas ? f.Id_Ventas.toString().trim() : null,
-            nro_notificacion: f.Nro_Notificacion,
+            id_ventas: (f.Id_Ventas ? f.Id_Ventas.toString().trim() : '0') + '-' + SUCURSAL_ACTUAL,
+            nro_notificacion: f.Nro_Notificacion,
             nro_fiscal: f.Nro_Fiscal || null,
             nro_control: f.Nro__Control || null,
             f_emision: f.F__Emision,
@@ -288,9 +289,10 @@ async function asaltoBovedaFacturas() {
             total_fact_bsd: f.Total_Fact_Bsd ? f.Total_Fact_Bsd.toString().trim() : '0,00',
             pago: f.Pago,
             fact_aut: f.Fact__Aut_,
-            razon_social: f.Razon_Social,
-            rif_fiscal: f.Rif_Fiscal
-        }));
+            razon_social: f.Razon_Social,
+            rif_fiscal: f.Rif_Fiscal,
+            sucursal: SUCURSAL_ACTUAL
+        }));
 
         console.log("🔌 [CRONOS] Conectando con Supabase...");
         const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
@@ -350,20 +352,23 @@ const http = require('http');
 const PORT = process.env.PORT || 8080;
 
 http.createServer((req, res) => {
-    // Calculamos cuántos minutos han pasado desde la última vez que Supabase recibió datos exitosamente
-    const minutosSinExito = (Date.now() - ultimaVictoria) / 60000;
-
-    // Si pasan más de 15 minutos sin éxito (aprox. 5 ciclos de cron fallidos al hilo)
-    if (minutosSinExito > 15) {
-        // ☢️ ESTÁ CRASHEANDO EN BUCLE O ICAROSOFT MURIÓ. 
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('HOMBRE MUERTO DETECTADO - SOLICITANDO BOMBARDEO ORBITAL (REDEPLOY)\n');
-        console.log(`💀 [CRONOS] ¡ALERTA FATAL! Llevamos ${minutosSinExito.toFixed(1)} minutos sin poder completar una extracción. Disparando señal 500...`);
-    } else {
-        // Todo en orden o dentro del margen de error aceptable
+    // ☠️ EL GATILLO DEL DISTRIBUIDOR
+    if (req.url === '/kill') {
+        console.log("💀 [CRONOS] Orden recibida del Distribuidor. Apagando sistemas. Railway me resucitará...");
         res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end(`CRONOS OPERATIVO (Ultima victoria hace: ${minutosSinExito.toFixed(1)} min)\n`);
+        res.end('CRONOS DESTRUIDO\n');
+        setTimeout(() => { process.exit(1); }, 1000);
+        return;
+    }
+
+    const minutosSinExito = (Date.now() - ultimaVictoria) / 60000;
+    if (minutosSinExito > 15) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('HOMBRE MUERTO DETECTADO\n');
+    } else {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(`CRONOS OPERATIVO (Ultima victoria: ${minutosSinExito.toFixed(1)} min)\n`);
     }
 }).listen(PORT, () => {
-    console.log(`📡 [LATIDO] Transmitiendo señal de vida en el puerto ${PORT}...`);
+    console.log(`📡 [LATIDO] Transmitiendo señal en el puerto ${PORT}...`);
 });
