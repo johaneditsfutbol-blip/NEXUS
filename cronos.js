@@ -48,7 +48,7 @@ async function asaltoBovedaServicios() {
 
     // 2. BRECHA DE ENTRADA: Login
     console.log("🔐 [CRONOS] Abriendo bóveda principal...");
-    await page.goto('https://administrativo.icarosoft.com/Login/', { waitUntil: 'networkidle2' });
+    await page.goto('https://administrativo.vidanetca.icarosoft.com/Login/', { waitUntil: 'networkidle2' });
 
     // Escribimos credenciales simulando un humano
     await page.waitForSelector('#id_sc_field_login');
